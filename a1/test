@@ -1,0 +1,7 @@
+a="water keys banana"
+temp=`echo $a | tr " " "\012"`
+
+for obj in $a
+do
+	echo $obj
+done

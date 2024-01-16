@@ -1,0 +1,190 @@
+allobjects=""
+allrooms=""
+score=0
+take="_me"
+room=""
+
+scan() {
+	cd $room
+        for f in "obj-"*
+        do	
+		if test "$f" != "obj-*"
+		then
+			object=`echo $f | sed 's/obj-//'`
+			if `echo "$allobjects" | grep -q "$object"`
+			then
+				eval curr$object="$room"
+			else
+				allobjects="$allobjects $object"
+				eval orig$object="$room"
+				eval curr$object="$room"
+        		fi
+		fi
+	done
+	cd ..
+}
+
+look() {
+	echo "\012"`cat "$room"/view`
+	for obj in $allobjects
+	do
+		if test `eval echo '$'curr$obj` = "$room"
+		then
+			orig=`eval echo '$'orig$obj`
+			path=$orig/`echo obj-$obj`
+			echo "\012There is `cat $path` here." 
+		fi	
+	done
+}
+
+inv() {	
+	echo "\012You are currently holding the following:"
+	for obj in $allobjects
+	do	
+		if test `eval echo '$'curr$obj` = "_me"
+		then
+			echo "\012$obj"	
+		fi
+	done	
+}
+
+move() {
+	file="exit-$1"
+	if test -f "$room/$file"
+	then
+		room=`cat "$room/$file"`
+		if `echo "$allrooms" | grep -q "$room"`
+		then	
+			look
+		else
+			allrooms="$allrooms $room"
+			score
+			scan
+			look
+		fi
+	else
+		echo "\012There is no way to go that direction."
+	fi
+}
+
+drop() {
+	if test `eval echo '$'curr$1` = "_me"
+	then
+		eval curr$1="$room"
+		echo "\012 Dropped."
+	else
+		echo "\012 You are not carrying an object named $1."
+	fi
+}
+
+get() {
+	if test `eval echo '$'curr$1` = "$room"
+	then
+		eval curr$1="_me"
+		echo "\012 Taken."
+	else
+		echo "\012 There is no object named $1 here."
+	fi
+}
+
+unvisited() {
+	if `echo "$allrooms" | grep -q "$room"`
+	then
+		echo 0
+	else
+		echo 1
+	fi
+}
+
+score() {
+	if test -f "$room/points" && test unvisited
+	then
+		pts=`cat "$room/points" | head -1`
+		echo "\012"`cat "$room/points" | tail -1`
+		score=`expr $score + $pts`
+	fi
+}
+
+getscore() {
+	echo "\012Your current score is $score points."
+}
+
+enter() {
+	echo "Welcome to Adventure!!\012" 
+	cd $1
+       	echo "Somewhere nearby is Colossal Cave. You are the adventurer. \012"
+	echo "From now on, direct with commands of 1 or 2 words."
+        info
+	echo "-------"
+
+        room=$2
+	score
+        allrooms="$allrooms $2"
+        scan
+	look
+	echo "\012"
+}
+
+info() {
+	echo "Type 'l' or 'look' to view the room and any objects present. "
+	echo "Type 'inv' to check inventory you are carrying. "
+	echo "Type 'n''w''e''s' to move in those directions. "
+	echo "Type 'drop OBJECT' to drop an OBJECT you carry. "
+	echo "Type 'get OBJECT' to carry an OBJECT present in current room. "
+	echo "Type 'score' to get your current score. " 
+}
+
+if test $# -eq 1
+then
+	if test -d "$1" && test -d "$1/start"
+	then
+		enter $1 start
+	else
+		echo "$1/start: No such map directory or room."
+		exit 1
+	fi
+elif test $# -eq 2
+then
+	if test -d "$1" && test -d "$1/$2"
+	then
+		enter $1 $2
+	else
+		echo "$1/$2: No such map directory or room."
+		exit 1
+	fi
+else
+	echo "usage: advent file [-x]"
+	exit 1
+fi
+
+while read verb noun
+do	
+	case $verb in
+		l*)
+			look
+			;;	
+		inv*)
+			inv
+			;;
+		[nwes])
+			move $verb
+			;;
+		drop)
+			drop $noun
+			;;
+		get)
+			get $noun
+			;;
+		score)
+			getscore
+			;;
+		*)
+			echo "\012Your command is invalid, please re-enter."
+			info
+			
+	esac	
+	echo "\012"
+done	
+echo "\012"		
+echo "\012You have terminated the adventure game. "
+echo "\012Your total score is $score points.\012"

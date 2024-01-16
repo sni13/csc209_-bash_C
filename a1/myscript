@@ -1,0 +1,4 @@
+
+eval a$1=$2
+echo Assigning \"$2\" to a\[\"$1\"]
+echo Now a\[\"$1\"] is `eval echo '$'a$1`

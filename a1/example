@@ -1,0 +1,21 @@
+like() {
+    if test $# -gt 0
+    then
+        echo I do like "$1".
+        shift
+    fi
+    but=But
+    for i
+    do
+        echo $but not as much as I like "$i".
+        but='Which is'
+    done
+}
+
+
+like cheese
+echo --
+like apples bananas
+echo --
+like 'the thing' 'the other thing' 'the third thing'
+like 1 2 3 4

@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h> 
+#include <string.h>
+
+static char *progname;
+
+int main (int argc, char ** argv){
+
+	printf("Number of arguments is %d\n", argc);	
+	printf("%s\n %s\n", argv[0], argv[1]);
+
+	char * sub[257];
+	sub['.'] = "STOP";
+    sub[','] = "PAUSE";
+	sub['?'] = "QUERY";
+
+	progname = argv[0];
+	int option, status = 0;
+
+	if (argc == 1 || (argc == 2 && strcmp(argv[1], "-") == 0)){
+		//readfromstdin();
+        printf("case 1\n");
+	}
+
+	while ((option = getopt(argc, argv, "c:")) != -1){
+		switch (option)
+		{
+			case 'c':
+				printf("flag -c \n");
+				unsigned char j = optarg[0];
+				sub[j] = optarg+1;
+				printf("case 0\n");
+			case '?':
+				status=1;
+				break;
+			default:
+				if (strcmp(argv[optind], "-") == 0){
+					//readfromstdin();
+					printf("case 1\n");
+				}else{
+					//readfromfile();
+					printf("case 2\n");
+				}		
+		}
+	}	
+	if (status){
+		printf("usage: %s [-c substitution] [file ...]\n", progname);
+	}
+	
+	return status;
+}
+
+
